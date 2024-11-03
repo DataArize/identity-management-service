@@ -28,12 +28,4 @@ public class ErrorResponse implements Serializable {
         this.errorCode = errorCode;
     }
 
-    public ErrorResponse(String title, String errorCode,
-                         int status, List<Violation> violations) {
-        this.title = title;
-        this.errorCode = errorCode;
-        this.status = status;
-        this.violations = violations;
-    }
-
 }

@@ -38,4 +38,17 @@ public class KeycloakConfig {
                 .password(password)
                 .build();
     }
+
+    @Produces
+    @Named("keycloakClientBuilder")
+    public KeycloakBuilder keyCloakConfig() {
+        return KeycloakBuilder.builder()
+                .serverUrl(serverUrl)
+                .realm(realm)
+                .grantType(OAuth2Constants.PASSWORD)
+                .clientId(clientId)
+                .clientSecret(clientSecret);
+
+    }
+
 }

@@ -2,10 +2,10 @@ package org.acme.dto;
 
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.io.Serializable;
 
 @Data
-public class RegistrationRequest {
+public class RegistrationRequest implements Serializable {
 
     private String email;
     private String username;
@@ -13,5 +13,6 @@ public class RegistrationRequest {
     private String lastName;
     private String password;
     private String dateOfBirth;
+    private UserProfileDto profile;
 
 }
