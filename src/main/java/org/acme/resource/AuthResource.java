@@ -5,6 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.acme.constants.ErrorCodes;
@@ -12,7 +13,6 @@ import org.acme.constants.ExceptionTitle;
 import org.acme.constants.SuccessMessages;
 import org.acme.dto.LoginRequest;
 import org.acme.dto.RegistrationRequest;
-import org.acme.dto.RegistrationResponse;
 import org.acme.exception.RegistrationFailedException;
 import org.acme.exception.UnauthorizedAccessException;
 import org.acme.service.AuthService;
@@ -57,6 +57,21 @@ public class AuthResource {
         return authService.authenticateUser(request).onItem().transform(success ->
                         SuccessResponseUtils.createSuccessResponse(success, Response.Status.OK,
                                 SuccessMessages.USER_AUTHENTICATION_SUCCESSFUL)
+                ).onFailure(UnauthorizedAccessException.class)
+                .recoverWithItem(ex -> ErrorResponseUtils
+                        .createErrorResponse(ex.getMessage(),
+                                Response.Status.UNAUTHORIZED,
+                                ExceptionTitle.AUTHENTICATION_FAILED,
+                                ErrorCodes.AUTHENTICATION_FAILED));
+    }
+
+    @POST
+    @Path("/logout")
+    public Uni<Response> logoutUser(@QueryParam("userId") String userId) {
+        return authService.invalidateUserSession(userId).onItem().transform(success ->
+                        SuccessResponseUtils.createSuccessResponse(SuccessMessages.USER_LOGOUT_SUCCESSFUL,
+                                Response.Status.OK,
+                                SuccessMessages.INVALIDATED_SESSION_SUCCESSFULLY)
                 ).onFailure(UnauthorizedAccessException.class)
                 .recoverWithItem(ex -> ErrorResponseUtils
                         .createErrorResponse(ex.getMessage(),

@@ -12,16 +12,21 @@ import org.acme.constants.ResponseEntityConstants;
 import org.acme.dto.LoginRequest;
 import org.acme.dto.RegistrationRequest;
 import org.acme.exception.KeycloakUserCreationFailedException;
+import org.acme.exception.NoActiveSessionFoundException;
 import org.acme.exception.UnauthorizedAccessException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.idm.UserSessionRepresentation;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -99,5 +104,25 @@ public class KeycloakService {
                         throw new UnauthorizedAccessException(ExceptionMessages.USER_AUTHENTICATION_FAILED + request.getUsername(), ErrorCodes.AUTHENTICATION_FAILED);
                     }
                 });
+    }
+
+    public Uni<Void> deleteUserSessions(String userId) {
+        return Uni.createFrom().item(userId)
+                .onItem()
+                .transformToUni(user -> {
+                    log.info("Attempting to invalidate session for user: {}", userId);
+                    RealmResource realmResource = keycloak.realm(realm);
+                    List<UserSessionRepresentation> userSessions =
+                            realmResource.users().get(userId).getUserSessions();
+                    if(userSessions.isEmpty()) {
+                        log.error("No active sessions found for the user, userId: {}", userId);
+                        throw new NoActiveSessionFoundException(ExceptionMessages.NO_ACTIVE_SESSION_FOUND + userId, ErrorCodes.NO_ACTIVE_SESSION);
+                    }
+                    for (UserSessionRepresentation sessionRepresentation: userSessions) {
+                        realmResource.deleteSession(sessionRepresentation.getId(), true);
+                    }
+                    log.info("User session invalidated successfully, user id: {}", userId);
+                    return Uni.createFrom().voidItem();
+                }).replaceWithVoid();
     }
 }

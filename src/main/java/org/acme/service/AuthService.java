@@ -52,6 +52,11 @@ public class AuthService {
 
     }
 
+    public Uni<Void> invalidateUserSession(String userId) {
+        return keycloakService.deleteUserSessions(userId).replaceWithVoid();
+
+    }
+
 
 
 
