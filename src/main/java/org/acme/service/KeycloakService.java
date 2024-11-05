@@ -57,12 +57,23 @@ public class KeycloakService {
                             log.info("Keycloak user account creation successful, email: {}", registration.getEmail());
                             return userRepresentation;
                         }
+                        else if(response.getStatus()==Response.Status.UNAUTHORIZED.getStatusCode()) {
+
+                        }
                         String errorMessage = (String)response.readEntity(HashMap.class).get(ResponseEntityConstants.ERROR_MESSAGE);
                         log.error("Keycloak user account creation failed with response code: {}, email: {}, entity: {}",
                                 response.getStatus(), registration.getEmail(), errorMessage);
                         throw new KeycloakUserCreationFailedException(ExceptionMessages.KEYCLOAK_USER_CREATION_REQUEST_FAILED
                                 + errorMessage,
                                 ErrorCodes.KEYCLOAK_USER_CREATION_FAILED);
+                    } catch (KeycloakUserCreationFailedException ex) {
+                        throw ex;
+                    }
+                    catch (Exception ex) {
+                        log.error("Keycloak user account creation failed with response code: {}, email: {}",
+                                Response.Status.UNAUTHORIZED, registration.getEmail());
+                        throw new UnauthorizedAccessException(ExceptionMessages.INVALID_KEYCLOAK_CLIENT_ID,
+                                ErrorCodes.AUTHENTICATION_FAILED);
                     }
                 });
     }
@@ -119,10 +130,10 @@ public class KeycloakService {
                         throw new NoActiveSessionFoundException(ExceptionMessages.NO_ACTIVE_SESSION_FOUND + userId, ErrorCodes.NO_ACTIVE_SESSION);
                     }
                     for (UserSessionRepresentation sessionRepresentation: userSessions) {
-                        realmResource.deleteSession(sessionRepresentation.getId(), true);
+                        realmResource.deleteSession(sessionRepresentation.getId(), false);
                     }
                     log.info("User session invalidated successfully, user id: {}", userId);
                     return Uni.createFrom().voidItem();
-                }).replaceWithVoid();
+                });
     }
 }
