@@ -8,14 +8,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.acme.constants.ErrorCodes;
-import org.acme.constants.ExceptionTitle;
 import org.acme.constants.SuccessMessages;
 import org.acme.dto.LoginRequest;
 import org.acme.dto.RegistrationRequest;
-import org.acme.exception.UnauthorizedAccessException;
 import org.acme.service.AuthService;
-import org.acme.utils.ErrorResponseUtils;
 import org.acme.utils.SuccessResponseUtils;
 
 @Slf4j
