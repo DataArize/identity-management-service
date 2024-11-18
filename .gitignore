@@ -40,3 +40,4 @@ nb-configuration.xml
 # TLS Certificates
 .certs/
 /src/main/resources/certs/
+/src/main/resources/application-local.properties
